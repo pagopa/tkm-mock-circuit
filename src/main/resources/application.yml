@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: Circuit Mock
+  h2:
+    console.enabled: true
+  datasource:
+    url: jdbc:h2:mem:circuitmock
+    username: ${CIRCUIT_MOCK_DB_USERNAME:circuitmock}
+    password: ${CIRCUIT_MOCK_DB_PASSWORD:circuitmock}
+    driverClassName: org.h2.Driver
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "info,health,prometheus"
+
+server:
+  port: ${SERVER_PORT:7955}
+  public-url: ${SERVER_PUBLIC_URL:http://localhost:${server.port}}
+
+logging:
+  level:
+    root: ${LOGGING_LEVEL:INFO}
+
+info:
+  app:
+    name: ${spring.application.name}
+    java-version: ${java.version}
+    logging-level: ${logging.level.root}
