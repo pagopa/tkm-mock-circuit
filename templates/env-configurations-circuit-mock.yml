@@ -1,0 +1,78 @@
+parameters:
+  - name: azureSubscription
+    default: ''
+  - name: KeyVaultName
+    default: ''
+  - name: secretName
+    default: ''
+  - name: spcClassName
+    default: ''
+  - name: env
+    default: ''
+  - name: kubernetesServiceConnection
+    default: ''
+
+steps:
+  - task: AzureKeyVault@2
+    inputs:
+      azureSubscription: ${{ parameters.azureSubscription }}
+      KeyVaultName: ${{ parameters.KeyVaultName }}
+      SecretsFilter: '*'
+      RunAsPreJob: false
+  - task: KubernetesManifest@0
+    displayName: Create secret ${{ parameters.secretName }}
+    inputs:
+      action: createSecret
+      secretType: generic
+      secretName: ${{ parameters.secretName }}
+      secretArguments: --from-literal=clientid=$(${{ parameters.env }}-clientid) --from-literal=clientsecret=$(${{ parameters.env }}-clientsecret)
+      kubernetesServiceConnection: ${{ parameters.kubernetesServiceConnection }}
+      namespace: tkm-${{ parameters.env }}
+  - task: Kubernetes@1
+    displayName: Create spc ${{ parameters.spcClassName }}
+    inputs:
+      connectionType: Kubernetes Service Connection
+      kubernetesServiceEndpoint: ${{ parameters.kubernetesServiceConnection }}
+      namespace: tkm-${{ parameters.env }}
+      command: apply
+      useConfigurationFile: true
+      inline: |
+        apiVersion: secrets-store.csi.x-k8s.io/v1
+        kind: SecretProviderClass
+        metadata:
+          name: ${{ parameters.spcClassName }}
+        spec:
+          provider: azure
+          parameters:
+            usePodIdentity: "false"
+            useVMManagedIdentity: "false"
+            userAssignedIdentityID: ""
+            keyvaultName: ${{ parameters.keyvaultName }}
+            tenantId: $(${{ parameters.env }}-tenantid)
+            objects: |
+              array:
+                - |
+                  objectName: ${{ parameters.env }}-tz
+                  objectType: secret
+                  objectVersion: ""
+                - |
+                  objectName: ${{ parameters.env }}-visaServerCertificate
+                  objectType: secret
+                  objectVersion: ""
+                - |
+                  objectName: ${{ parameters.env }}-visaPrivateKey
+                  objectType: secret
+                  objectVersion: ""
+          secretObjects:
+            - secretName: jvm
+              type: Opaque
+              data:
+                - key: TZ
+                  objectName: ${{ parameters.env }}-tz
+            - secretName: tkmcircuitmock
+              type: Opaque
+              data:
+                - key: VISA_CERTIFICATE
+                  objectName: ${{ parameters.env }}-visaServerCertificate
+                - key: VISA_PRIVATE_KEY
+                  objectName: ${{ parameters.env }}-visaPrivateKey

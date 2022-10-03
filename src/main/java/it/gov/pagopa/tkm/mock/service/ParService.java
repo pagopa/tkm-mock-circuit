@@ -36,10 +36,10 @@ public class ParService {
     @Autowired
     private ObjectMapper mapper;
 
-    @Value("${VISA_PUBLIC_CERT_MOCK}")
-    private String visaPublicCert;
+    @Value("${VISA_CERTIFICATE}")
+    private String visaCertificate;
 
-    @Value("${VISA_PRIVATE_KEY_MOCK}")
+    @Value("${VISA_PRIVATE_KEY}")
     private String visaPrivateKey;
 
     private final Random random = new Random();
@@ -134,7 +134,7 @@ public class ParService {
     }
 
     private RSAPublicKey getRSAPublicKey() throws Exception {
-        return (RSAPublicKey) CertificateFactory.getInstance("X.509").generateCertificate(new ByteArrayInputStream(new com.nimbusds.jose.util.Base64(visaPublicCert.replace("-----BEGIN CERTIFICATE-----", "").replace("-----END CERTIFICATE-----", "")).decode())).getPublicKey();
+        return (RSAPublicKey) CertificateFactory.getInstance("X.509").generateCertificate(new ByteArrayInputStream(new com.nimbusds.jose.util.Base64(visaCertificate.replace("-----BEGIN CERTIFICATE-----", "").replace("-----END CERTIFICATE-----", "")).decode())).getPublicKey();
     }
 
 }
