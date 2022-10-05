@@ -1,0 +1,104 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tkmcircuitmocksit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tkmcircuitmocksit
+  template:
+    metadata:
+      labels:
+        app: tkmcircuitmocksit
+      annotations:
+        prometheus.io/path: /actuator/prometheus
+        prometheus.io/port: '8080'
+        prometheus.io/scrape: 'true'
+    spec:
+      hostAliases:
+        - ip: "10.70.67.9"
+          hostnames:
+            - "tkmpgsqlt01.postgres.database.azure.com"
+        - ip: "10.70.67.8"
+          hostnames:
+            - "ddstkmhub.servicebus.windows.net"
+        - ip: "10.230.11.68"
+          hostnames:
+            - "cstar-d-evh-ns.servicebus.windows.net"
+      volumes:
+        - name: secrets-store-inline-circuit-mock
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: tkm-circuit-mock-spc-sit
+            nodePublishSecretRef:
+              name: tkm-circuit-mock-kv-store-creds-sit
+      containers:
+        - name: tkmcircuitmocksit
+          image: cstaruatregistry.azurecr.io/tkmcircuitmock
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              memory: 4Gi
+              cpu: 500m
+            limits:
+              memory: 8Gi
+              cpu: 1000m
+          volumeMounts:
+            - name: secrets-store-inline-circuit-mock
+              mountPath: /mnt/secrets-store
+              readOnly: true
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - all
+          env:
+            - name: TZ
+              valueFrom:
+                secretKeyRef:
+                  key: TZ
+                  name: jvm
+            - name: VISA_CERTIFICATE
+              valueFrom:
+                secretKeyRef:
+                  key: VISA_CERTIFICATE
+                  name: tkmcircuitmock
+            - name: VISA_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: VISA_PRIVATE_KEY
+                  name: tkmcircuitmock
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+              scheme: HTTP
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+              scheme: HTTP
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 20
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 30
+          imagePullPolicy: Always
