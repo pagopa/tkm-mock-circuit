@@ -117,6 +117,7 @@ stages:
             inputs:
               targetType: 'inline'
               script: |
+                git fetch
                 git checkout -q ${{ variables['Build.SourceBranchName'] }}
               failOnStderr: true
 
@@ -169,6 +170,7 @@ stages:
             inputs:
               targetType: 'inline'
               script: |
+                git fetch
                 git checkout -q -b tmp/$(getreleaseversion.version) circuit-mock-$(getreleaseversion.version)
               failOnStderr: true
 
