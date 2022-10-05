@@ -1,0 +1,11 @@
+.idea/
+terraform/**
+!terraform/*.tf
+target/
+.classpath
+.project
+.settings/**
+.vscode/settings.json
+pom.xml.versionsBackup
+circuit-mock.iml
+/src/generated/java/
