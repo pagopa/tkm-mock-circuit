@@ -108,7 +108,7 @@
         </repository>
     </distributionManagement>
     <scm>
-        <developerConnection>scm:git:https://github.com/pagopa/tkm-mock-circuit.git</developerConnection>
+        <developerConnection>scm:git:git@github.com:pagopa/tkm-mock-circuit.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 </project>
