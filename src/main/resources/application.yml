@@ -17,7 +17,6 @@ management:
 
 server:
   port: ${SERVER_PORT:7955}
-  public-url: ${SERVER_PUBLIC_URL:http://localhost:${server.port}}
 
 logging:
   level:
