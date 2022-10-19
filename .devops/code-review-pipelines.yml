@@ -2,7 +2,11 @@ variables:
   MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
   MAVEN_OPTS: '-Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
 
-trigger: none
+trigger:
+  branches:
+    include:
+      - main
+      - develop
 
 pool:
   vmImage: ubuntu-latest
