@@ -21,18 +21,18 @@ steps:
       path: $(MAVEN_CACHE_FOLDER)
     displayName: Cache Maven local repo
 
-  - task: SonarCloudPrepare@1
-    displayName: 'Prepare SonarCloud analysis configuration'
-    inputs:
-      SonarCloud: '$(SONARCLOUD_SERVICE_CONN)'
-      organization: '$(SONARCLOUD_ORG)'
-      scannerMode: Other
-      extraProperties: |
-        sonar.projectKey=$(SONARCLOUD_PROJECT_KEY)
-        sonar.projectName=$(SONARCLOUD_PROJECT_NAME)
-        sonar.coverage.exclusions=**/config/*,**/*Mock*,**/model/*,**/utils/soap/*
-        sonar.coverage.jacoco.xmlReportPaths=./target/site/jacoco/jacoco.xml
-        sonar.junit.reportPaths=target/surefire-reports/
+#  - task: SonarCloudPrepare@1
+#    displayName: 'Prepare SonarCloud analysis configuration'
+#    inputs:
+#      SonarCloud: '$(SONARCLOUD_SERVICE_CONN)'
+#      organization: '$(SONARCLOUD_ORG)'
+#      scannerMode: Other
+#      extraProperties: |
+#        sonar.projectKey=$(SONARCLOUD_PROJECT_KEY)
+#        sonar.projectName=$(SONARCLOUD_PROJECT_NAME)
+#        sonar.coverage.exclusions=**/config/*,**/*Mock*,**/model/*,**/utils/soap/*
+#        sonar.coverage.jacoco.xmlReportPaths=./target/site/jacoco/jacoco.xml
+#        sonar.junit.reportPaths=target/surefire-reports/
 
   - task: Maven@3
     inputs:
@@ -44,12 +44,12 @@ steps:
       publishJUnitResults: false
       testResultsFiles: '**/surefire-reports/TEST-*.xml'
       goals: 'clean verify'
-      sonarQubeRunAnalysis: true
+      sonarQubeRunAnalysis: false
 
-  - task: SonarCloudPublish@1
-    displayName: 'Publish SonarCloud results on build summary'
-    inputs:
-      pollingTimeoutSec: '300'
+#  - task: SonarCloudPublish@1
+#    displayName: 'Publish SonarCloud results on build summary'
+#    inputs:
+#      pollingTimeoutSec: '300'
 
   - task: PublishCodeCoverageResults@1
     inputs:
