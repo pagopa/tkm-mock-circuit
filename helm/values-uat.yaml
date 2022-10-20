@@ -3,7 +3,7 @@ microservice-chart:
   nameOverride: ""
   fullnameOverride: ""
   image:
-    repository: pagopadcommonacr.azurecr.io/tkmmockcircuit
+    repository: pagopaucommonacr.azurecr.io/tkmmockcircuit
     tag: "1.0.5-13"
     pullPolicy: Always
   livenessProbe:
