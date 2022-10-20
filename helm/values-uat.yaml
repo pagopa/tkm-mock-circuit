@@ -62,7 +62,7 @@ microservice-chart:
           targetValue: "30"
   envConfig:
     CIRCUIT_MOCK_DB_USERNAME: ""
-    SERVER_PORT: "true"
+    SERVER_PORT: 8080
   envSecret:
     CIRCUIT_MOCK_DB_PASSWORD: tkm-db-password
     VISA_CERTIFICATE: tkm-visa-certificate
