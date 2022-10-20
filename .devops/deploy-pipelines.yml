@@ -71,6 +71,8 @@ stages:
     condition: succeeded()
     jobs:
       - deployment: "deploy"
+        pool:
+          name: pagopa-uat-linux
         environment: 'UAT'
         strategy:
           runOnce:
