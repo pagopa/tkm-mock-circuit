@@ -10,6 +10,9 @@ spring:
     driverClassName: org.h2.Driver
 
 management:
+  health:
+    probes:
+      enabled: true
   endpoints:
     web:
       exposure:

@@ -68,6 +68,8 @@ microservice-chart:
     SERVER_PORT: "true"
   envSecret:
     CIRCUIT_MOCK_DB_PASSWORD: tkm-db-password
+    VISA_CERTIFICATE: tkm-visa-certificate
+    VISA_PRIVATE_KEY: tkm-visa-private-key
   keyvault:
     name: "pagopa-u-shared-kv"
     tenantId: "7788edaf-0346-4068-9d79-c868aed15b3d"
