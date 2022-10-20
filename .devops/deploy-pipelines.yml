@@ -85,11 +85,11 @@ stages:
                       helm repo add microservice-chart https://pagopa.github.io/aks-microservice-chart-blueprint
                       helm dep build helm
                 - template: templates/helm-microservice-chart-deploy/template.yaml@pagopaCommons
-                    parameters:
-                      DO_DEPLOY: true
-                      ENV: "UAT"
-                      KUBERNETES_SERVICE_CONN: $(UAT_KUBERNETES_SERVICE_CONN)
-                      NAMESPACE: "shared"
-                      APP_NAME: $(IMAGE_REPOSITORY_NAME)
-                      VALUE_FILE: "helm/values-uat.yaml"
-                      DEPLOY_VERSION: $(deploy_version)
+                  parameters:
+                    DO_DEPLOY: true
+                    ENV: "UAT"
+                    KUBERNETES_SERVICE_CONN: $(UAT_KUBERNETES_SERVICE_CONN)
+                    NAMESPACE: "shared"
+                    APP_NAME: $(IMAGE_REPOSITORY_NAME)
+                    VALUE_FILE: "helm/values-uat.yaml"
+                    DEPLOY_VERSION: $(deploy_version)
