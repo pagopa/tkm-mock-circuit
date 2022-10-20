@@ -68,7 +68,9 @@ stages:
 
   - stage: Deploy
     displayName: 'Deploy'
-    dependsOn: Build
+    dependsOn:
+      - Release
+      - Build
     condition: succeeded()
     variables:
       deploy_version: $[ stageDependencies.Release.make_release.outputs['current_version.value'] ]
