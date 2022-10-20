@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
   title: Pagopa Circuit Mock
-  version: '1.0.5-8'
+  version: '1.0.5-9'
 paths:
   /par:
     post:
