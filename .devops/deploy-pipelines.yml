@@ -17,7 +17,7 @@ stages:
       - job: Build_docker
         displayName: Build docker with Build.SourceVersion as TAG
         steps:
-          - template: templates/docker-release/template.yaml@pagopaCommons
+          - template: templates/maven-github-release/template.yaml@pagopaCommons
             parameters:
               CONTAINER_REGISTRY_SERVICE_CONN: $(UAT_CONTAINER_REGISTRY_SERVICE_CONN)
               CONTAINER_REGISTRY_FQDN: $(UAT_CONTAINER_NAMESPACE)
@@ -46,7 +46,7 @@ stages:
                     script: |
                       helm repo add microservice-chart https://pagopa.github.io/aks-microservice-chart-blueprint
                       helm dep build helm
-                - template: azure-templates/helm-microservice-chart-deploy.yml
+                - template: templates/helm-microservice-chart-deploy/template.yaml@pagopaCommons
                   parameters:
                     DO_DEPLOY: true
                     ENV: 'UAT'
