@@ -35,7 +35,7 @@ stages:
           persistCredentials: true
         - template: templates/maven-github-release/template.yaml@pagopaCommons
           parameters:
-            release_branch: $(sourceBranch)
+            release_branch: "CHK-687-add-helm-chart"
             gitEmail: $(GIT_EMAIL)
             gitUsername: $(GIT_USERNAME)
             gitHubConnection: $(GITHUB_CONNECTION)
@@ -53,7 +53,7 @@ stages:
       - job: "build"
         steps:
           - script: |
-              git checkout $(sourceBranch)
+              git checkout CHK-687-add-helm-chart
             displayName: Checkout
           - template: templates/docker-release/template.yaml@pagopaCommons
             parameters:
