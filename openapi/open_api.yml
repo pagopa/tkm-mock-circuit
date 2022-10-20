@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
   title: Pagopa Circuit Mock
-  version: '1.0.0'
+  version: '1.0.5-14'
 paths:
   /par:
     post:
@@ -45,7 +45,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VisaParResponseEnc'
-        #TODO ERRORI
+                #TODO ERRORI
   /bin/visa:
     post:
       summary: get paginated list of Visa bin ranges
@@ -184,7 +184,7 @@ components:
           type: string
         binRangePaymentAccountType:
           type: string
-          enum: [P,T]
+          enum: [P, T]
           description: indicates whether a bin range is used for pans or tokens (always T for this mock)
         productID:
           type: string
@@ -219,7 +219,7 @@ components:
       properties:
         statusCode:
           type: string
-          enum: [CDI000,CDI001,CDI002,CDI012,CDI052,CDI071,CDI246,CDI247,CDI249,CDI250]
+          enum: [CDI000, CDI001, CDI002, CDI012, CDI052, CDI071, CDI246, CDI247, CDI249, CDI250]
           description: CDI000 is for 200 OK, other codes are for 500 Internal server error
         statusDescription:
           type: string
@@ -234,7 +234,7 @@ components:
           format: integer
         areNextOffsetRecordsAvailable:
           type: string
-          enum: [Y,N]
+          enum: [Y, N]
         responseHeader:
           $ref: '#/components/schemas/VisaBinRangeResponseHeader'
         responseData:
