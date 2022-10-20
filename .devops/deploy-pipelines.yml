@@ -1,8 +1,18 @@
 parameters:
   - name: FORCE_REPLACE_DOCKER_IMAGE
-    displayName: Force replace docker image in docker registry
+    displayName: "Force replace docker image in docker registry"
     type: boolean
     default: false
+  - name: SEMVER
+      displayName: "When packing a release, define the version bump to apply. Use only buildNumber or skip for manual deployment"
+      type: string
+      values:
+        - major
+        - minor
+        - patch
+        - buildNumber
+        - skip
+      default: skip
 
 resources:
   repositories:
@@ -16,24 +26,46 @@ pool:
   vmImage: ubuntu-latest
 
 stages:
-  - stage: 'Build_for_UAT'
-    displayName: 'Build for UAT deployment'
-    condition: succeeded()
+  - stage: Release
+      jobs:
+        - job: make_release
+            steps:
+              - checkout: self
+                clean: true
+                persistCredentials: true
+              - template: templates/maven-github-release/template.yaml@pagopaCommons
+            parameters:
+              release_branch: $(sourceBranch)
+              gitEmail: $(GIT_EMAIL)
+              gitUsername: $(GIT_USERNAME)
+              gitHubConnection: $(GITHUB_CONNECTION)
+              ${{ if ne(parameters.SEMVER, 'skip') }}:
+                semver: '${{ parameters.SEMVER }}'
+              ${{ if eq(parameters.SEMVER, 'skip') }}:
+                semver: 'buildNumber' # this case is impossible due to main condition, but it is necessary to work property
+
+  # Build and Push Docker Image
+  - stage: Build
+    dependsOn: Release
+    variables:
+      current_version: $[ stageDependencies.Release.make_release.outputs['current_version.value'] ]
     jobs:
-      - job: Build_docker
-        displayName: Build docker with Build.SourceVersion as TAG
+      - job: "build"
         steps:
-          - template: templates/maven-github-release/template.yaml@pagopaCommons
+          - script: |
+              git checkout $(sourceBranch)
+            displayName: Checkout
+          - template: templates/docker-release/template.yaml@pagopaCommons
             parameters:
               CONTAINER_REGISTRY_SERVICE_CONN: $(UAT_CONTAINER_REGISTRY_SERVICE_CONN)
               CONTAINER_REGISTRY_FQDN: $(UAT_CONTAINER_NAMESPACE)
-              DOCKER_IMAGE_NAME: $(K8S_IMAGE_REPOSITORY_NAME)
-              DOCKER_IMAGE_TAG: $(Build.SourceVersion)
+              DOCKER_IMAGE_NAME: $(IMAGE_REPOSITORY_NAME)
+              DOCKER_IMAGE_TAG: $(current_version)
               FORCE_REPLACE_DOCKER_IMAGE: ${{ parameters.FORCE_REPLACE_DOCKER_IMAGE }}
 
-  - stage: 'Deploy_for_UAT'
-    displayName: 'Deploy UAT'
-    dependsOn: Build_for_UAT
+  - stage: Deploy
+    displayName: 'Deploy'
+    dependsOn: Build
     condition: succeeded()
     jobs:
       - deployment: "deploy"
@@ -53,11 +85,11 @@ stages:
                       helm repo add microservice-chart https://pagopa.github.io/aks-microservice-chart-blueprint
                       helm dep build helm
                 - template: templates/helm-microservice-chart-deploy/template.yaml@pagopaCommons
-                  parameters:
-                    DO_DEPLOY: true
-                    ENV: 'UAT'
-                    KUBERNETES_SERVICE_CONN: $(UAT_KUBERNETES_SERVICE_CONN)
-                    NAMESPACE: shared
-                    APP_NAME: $(K8S_IMAGE_REPOSITORY_NAME)
-                    VALUE_FILE: "helm/values-uat.yaml"
-                    GREEN_VERSION: $(Build.SourceVersion)
+                    parameters:
+                      DO_DEPLOY: true
+                      ENV: "UAT"
+                      KUBERNETES_SERVICE_CONN: $(UAT_KUBERNETES_SERVICE_CONN)
+                      NAMESPACE: "shared"
+                      APP_NAME: $(IMAGE_REPOSITORY_NAME)
+                      VALUE_FILE: "helm/values-uat.yaml"
+                      DEPLOY_VERSION: $(deploy_version)
