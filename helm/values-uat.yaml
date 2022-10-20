@@ -58,9 +58,6 @@ microservice-chart:
           resourceGroupName: pagopa-u-shared-sec-rg
           resourceURI: Microsoft.KeyVault/vaults/pagopa-u-shared-kv
           metricName: ServiceApiHit
-          # metricNamespace: Microsoft.KeyVault/vaults
-          # metricFilter: namespace eq 'default'
-          # metricAggregationInterval: "-1:1:0"
           metricAggregationType: Count
           targetValue: "30"
   envConfig:
