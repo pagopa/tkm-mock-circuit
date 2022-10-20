@@ -4,15 +4,15 @@ parameters:
     type: boolean
     default: false
   - name: SEMVER
-      displayName: "When packing a release, define the version bump to apply. Use only buildNumber or skip for manual deployment"
-      type: string
-      values:
-        - major
-        - minor
-        - patch
-        - buildNumber
-        - skip
-      default: skip
+    displayName: "When packing a release, define the version bump to apply. Use only buildNumber or skip for manual deployment"
+    type: string
+    values:
+      - major
+      - minor
+      - patch
+      - buildNumber
+      - skip
+    default: skip
 
 resources:
   repositories:
