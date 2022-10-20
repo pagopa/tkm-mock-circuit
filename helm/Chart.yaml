@@ -2,8 +2,8 @@ apiVersion: v2
 name: tkm-mock-circuit
 description: TKM Mock circuit
 type: application
-version: 1.0.5-6
-appVersion: 1.0.5-6
+version: 1.0.5-7
+appVersion: 1.0.5-7
 dependencies:
   - name: microservice-chart
     version: 1.17.0
