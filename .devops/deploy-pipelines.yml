@@ -55,6 +55,8 @@ stages:
           - script: |
               git checkout CHK-687-add-helm-chart
             displayName: Checkout
+          - script: |
+              mvn package -f tkm-mock-circuit/pom.xml
           - template: templates/docker-release/template.yaml@pagopaCommons
             parameters:
               CONTAINER_REGISTRY_SERVICE_CONN: $(UAT_CONTAINER_REGISTRY_SERVICE_CONN)
