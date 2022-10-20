@@ -1,3 +1,9 @@
+parameters:
+  - name: FORCE_REPLACE_DOCKER_IMAGE
+    displayName: Force replace docker image in docker registry
+    type: boolean
+    default: false
+
 resources:
   repositories:
     - repository: pagopaCommons
