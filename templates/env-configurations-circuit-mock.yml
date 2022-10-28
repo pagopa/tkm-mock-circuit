@@ -63,6 +63,10 @@ steps:
                   objectName: ${{ parameters.env }}-visaPrivateKey
                   objectType: secret
                   objectVersion: ""
+                - |
+                  objectName: ${{ parameters.env }}-applicationinsights-connection-string
+                  objectType: secret
+                  objectVersion: ""
           secretObjects:
             - secretName: jvm
               type: Opaque
@@ -76,3 +80,8 @@ steps:
                   objectName: ${{ parameters.env }}-visaServerCertificate
                 - key: VISA_PRIVATE_KEY
                   objectName: ${{ parameters.env }}-visaPrivateKey
+            - secretName: applicationinsights
+              type: Opaque
+              data:
+                - key: APPLICATIONINSIGHTS_CONNECTION_STRING
+                  objectName: ${{ parameters.env }}-applicationinsights-connection-string
