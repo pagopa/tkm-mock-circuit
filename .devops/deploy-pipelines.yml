@@ -13,6 +13,14 @@ parameters:
       - buildNumber
       - skip
     default: skip
+  - name: DEPLOY_DEV
+    displayName: "Deploy in the DEV environment"
+    type: boolean
+    default: true
+  - name: DEPLOY_UAT
+      displayName: "Deploy in the UAT environment"
+      type: boolean
+      default: true
 
 resources:
   repositories:
@@ -27,6 +35,7 @@ pool:
 
 stages:
   - stage: Release
+    condition: eq(parameters.DEPLOY_UAT, true)
     jobs:
     - job: make_release
       steps:
@@ -48,6 +57,7 @@ stages:
   # Build and Push Docker Image
   - stage: Build
     dependsOn: Release
+    condition: eq(parameters.DEPLOY_UAT, true)
     variables:
       current_version: $[ stageDependencies.Release.make_release.outputs['current_version.value'] ]
     jobs:
@@ -71,7 +81,7 @@ stages:
     dependsOn:
       - Release
       - Build
-    condition: succeeded()
+    condition: and(succeeded(), eq(parameters.DEPLOY_UAT, true))
     variables:
       deploy_version: $[ stageDependencies.Release.make_release.outputs['current_version.value'] ]
     jobs:
