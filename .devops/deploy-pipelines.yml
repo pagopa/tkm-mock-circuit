@@ -35,28 +35,28 @@ pool:
 
 stages:
   - stage: ReleaseDEV
-      condition: eq(${{parameters.DEPLOY_DEV}}, true)
-      jobs:
-        - job: make_release
-          steps:
-            - checkout: self
-              clean: true
-              persistCredentials: true
-            - template: templates/maven-github-release/template.yaml@pagopaCommons
-              parameters:
-                release_branch: "CHK-687-add-helm-chart"
-                gitEmail: $(GIT_EMAIL)
-                gitUsername: $(GIT_USERNAME)
-                gitHubConnection: $(GITHUB_CONNECTION)
-                ${{ if ne(parameters.SEMVER, 'skip') }}:
-                  semver: '${{ parameters.SEMVER }}'
-                ${{ if eq(parameters.SEMVER, 'skip') }}:
-                  semver: 'buildNumber' # this case is impossible due to main condition, but it is necessary to work property
-            - template: templates/maven-github-current-version/template.yaml@pagopaCommons
+    condition: eq(${{parameters.DEPLOY_DEV}}, true)
+    jobs:
+      - job: make_release
+        steps:
+          - checkout: self
+            clean: true
+            persistCredentials: true
+          - template: templates/maven-github-release/template.yaml@pagopaCommons
+            parameters:
+              release_branch: "CHK-687-add-helm-chart"
+              gitEmail: $(GIT_EMAIL)
+              gitUsername: $(GIT_USERNAME)
+              gitHubConnection: $(GITHUB_CONNECTION)
+              ${{ if ne(parameters.SEMVER, 'skip') }}:
+                semver: '${{ parameters.SEMVER }}'
+              ${{ if eq(parameters.SEMVER, 'skip') }}:
+                semver: 'buildNumber' # this case is impossible due to main condition, but it is necessary to work property
+          - template: templates/maven-github-current-version/template.yaml@pagopaCommons
 
   # Build and Push Docker Image
   - stage: BuildDEV
-    dependsOn: Release
+    dependsOn: ReleaseDEV
     condition: eq(${{parameters.DEPLOY_DEV}}, true)
     variables:
       current_version: $[ stageDependencies.Release.make_release.outputs['current_version.value'] ]
@@ -79,8 +79,8 @@ stages:
   - stage: DeployDEV
     displayName: 'Deploy'
     dependsOn:
-      - Release
-      - Build
+      - ReleaseDEV
+      - BuildDEV
     condition: eq(${{parameters.DEPLOY_DEV}}, true)
     variables:
       deploy_version: $[ stageDependencies.Release.make_release.outputs['current_version.value'] ]
@@ -114,26 +114,26 @@ stages:
   - stage: ReleaseUAT
     condition: eq(${{parameters.DEPLOY_UAT}}, true)
     jobs:
-    - job: make_release
-      steps:
-        - checkout: self
-          clean: true
-          persistCredentials: true
-        - template: templates/maven-github-release/template.yaml@pagopaCommons
-          parameters:
-            release_branch: "CHK-687-add-helm-chart"
-            gitEmail: $(GIT_EMAIL)
-            gitUsername: $(GIT_USERNAME)
-            gitHubConnection: $(GITHUB_CONNECTION)
-            ${{ if ne(parameters.SEMVER, 'skip') }}:
-              semver: '${{ parameters.SEMVER }}'
-            ${{ if eq(parameters.SEMVER, 'skip') }}:
-              semver: 'buildNumber' # this case is impossible due to main condition, but it is necessary to work property
-        - template: templates/maven-github-current-version/template.yaml@pagopaCommons
+      - job: make_release
+        steps:
+          - checkout: self
+            clean: true
+            persistCredentials: true
+          - template: templates/maven-github-release/template.yaml@pagopaCommons
+            parameters:
+              release_branch: "CHK-687-add-helm-chart"
+              gitEmail: $(GIT_EMAIL)
+              gitUsername: $(GIT_USERNAME)
+              gitHubConnection: $(GITHUB_CONNECTION)
+              ${{ if ne(parameters.SEMVER, 'skip') }}:
+                semver: '${{ parameters.SEMVER }}'
+              ${{ if eq(parameters.SEMVER, 'skip') }}:
+                semver: 'buildNumber' # this case is impossible due to main condition, but it is necessary to work property
+          - template: templates/maven-github-current-version/template.yaml@pagopaCommons
 
   # Build and Push Docker Image
   - stage: BuildUAT
-    dependsOn: Release
+    dependsOn: ReleaseUAT
     condition: eq(${{parameters.DEPLOY_UAT}}, true)
     variables:
       current_version: $[ stageDependencies.Release.make_release.outputs['current_version.value'] ]
@@ -156,8 +156,8 @@ stages:
   - stage: DeployUAT
     displayName: 'Deploy'
     dependsOn:
-      - Release
-      - Build
+      - ReleaseUAT
+      - BuildUAT
     condition: eq(${{parameters.DEPLOY_UAT}}, true)
     variables:
       deploy_version: $[ stageDependencies.Release.make_release.outputs['current_version.value'] ]
