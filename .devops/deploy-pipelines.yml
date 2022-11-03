@@ -18,9 +18,9 @@ parameters:
     type: boolean
     default: true
   - name: DEPLOY_UAT
-      displayName: "Deploy in the UAT environment"
-      type: boolean
-      default: true
+    displayName: "Deploy in the UAT environment"
+    type: boolean
+    default: true
 
 resources:
   repositories:
