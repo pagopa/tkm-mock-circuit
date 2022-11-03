@@ -113,6 +113,7 @@ stages:
 
   - stage: ReleaseUAT
     condition: eq(${{parameters.DEPLOY_UAT}}, true)
+    dependsOn: []
     jobs:
       - job: make_release
         steps:
