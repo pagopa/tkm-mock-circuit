@@ -116,19 +116,19 @@ public class ParService {
 
     private PrivateKey getRSAPrivateKey() throws Exception {
         final Enumeration<?> e = ((ASN1Sequence) ASN1Primitive.fromByteArray(new com.nimbusds.jose.util.Base64(visaPrivateKey.replace("-----BEGIN RSA PRIVATE KEY-----", "").replace("-----END RSA PRIVATE KEY-----", "").trim()).decode())).getObjects();
-        final BigInteger v = ((ASN1Integer) e.nextElement()).getValue();
+        final BigInteger v = ((ASN1Integer) e.nextElement()).getPositiveValue();
         int version = v.intValue();
         if (version != 0 && version != 1) {
             throw new IllegalArgumentException("wrong version for RSA private key");
         }
-        final BigInteger modulus = ((ASN1Integer) e.nextElement()).getValue();
-        ((ASN1Integer) e.nextElement()).getValue();
-        BigInteger privateExponent = ((ASN1Integer) e.nextElement()).getValue();
-        ((ASN1Integer) e.nextElement()).getValue();
-        ((ASN1Integer) e.nextElement()).getValue();
-        ((ASN1Integer) e.nextElement()).getValue();
-        ((ASN1Integer) e.nextElement()).getValue();
-        ((ASN1Integer) e.nextElement()).getValue();
+        final BigInteger modulus = ((ASN1Integer) e.nextElement()).getPositiveValue();
+        ((ASN1Integer) e.nextElement()).getPositiveValue();
+        BigInteger privateExponent = ((ASN1Integer) e.nextElement()).getPositiveValue();
+        ((ASN1Integer) e.nextElement()).getPositiveValue();
+        ((ASN1Integer) e.nextElement()).getPositiveValue();
+        ((ASN1Integer) e.nextElement()).getPositiveValue();
+        ((ASN1Integer) e.nextElement()).getPositiveValue();
+        ((ASN1Integer) e.nextElement()).getPositiveValue();
         RSAPrivateKeySpec privateKeySpec = new RSAPrivateKeySpec(modulus, privateExponent);
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         return keyFactory.generatePrivate(privateKeySpec);
