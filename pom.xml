@@ -4,7 +4,7 @@
 
     <groupId>it.gov.pagopa</groupId>
     <artifactId>circuit-mock</artifactId>
-    <version>1.0.8-SNAPSHOT</version>
+    <version>1.0.8</version>
 
     <parent>
         <groupId>it.gov.pagopa.tkm.ms</groupId>
@@ -85,6 +85,6 @@
     </distributionManagement>
     <scm>
         <developerConnection>scm:git:https://github.com/pagopa/tkm-mock-circuit.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>circuit-mock-1.0.8</tag>
     </scm>
 </project>
