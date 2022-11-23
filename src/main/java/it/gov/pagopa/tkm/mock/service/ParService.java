@@ -89,6 +89,7 @@ public class ParService {
     // GET PAR
 
     public ParResponseEnc getParVisa(ParRequestEnc request, String keyId) throws Exception {
+        log.info("Encrypted request: " + request.getEncData());
         ParRequestPlain plainRequest = getDecryptedPayload(request.getEncData());
         log.info("Plain par request: " + plainRequest);
         CardEntity card = cardRepository.findByPan(plainRequest.getPrimaryAccount());
