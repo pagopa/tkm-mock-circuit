@@ -115,7 +115,7 @@ public class ParService {
     }
 
     private PrivateKey getRSAPrivateKey() throws Exception {
-        final Enumeration<?> e = ((ASN1Sequence) ASN1Primitive.fromByteArray(new com.nimbusds.jose.util.Base64(visaPrivateKey.replace("-----BEGIN RSA PRIVATE KEY-----", "").replace("-----END RSA PRIVATE KEY-----", "")).decode())).getObjects();
+        final Enumeration<?> e = ((ASN1Sequence) ASN1Primitive.fromByteArray(new com.nimbusds.jose.util.Base64(visaPrivateKey.replace("-----BEGIN RSA PRIVATE KEY-----", "").replace("-----END RSA PRIVATE KEY-----", "").trim()).decode())).getObjects();
         final BigInteger v = ((ASN1Integer) e.nextElement()).getValue();
         int version = v.intValue();
         if (version != 0 && version != 1) {
@@ -135,7 +135,7 @@ public class ParService {
     }
 
     private RSAPublicKey getRSAPublicKey() throws Exception {
-        return (RSAPublicKey) CertificateFactory.getInstance("X.509").generateCertificate(new ByteArrayInputStream(new com.nimbusds.jose.util.Base64(visaCertificate.replace("-----BEGIN CERTIFICATE-----", "").replace("-----END CERTIFICATE-----", "")).decode())).getPublicKey();
+        return (RSAPublicKey) CertificateFactory.getInstance("X.509").generateCertificate(new ByteArrayInputStream(new com.nimbusds.jose.util.Base64(visaCertificate.replace("-----BEGIN CERTIFICATE-----", "").replace("-----END CERTIFICATE-----", "").trim()).decode())).getPublicKey();
     }
 
 }
