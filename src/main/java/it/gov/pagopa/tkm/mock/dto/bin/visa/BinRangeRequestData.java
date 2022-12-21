@@ -6,6 +6,7 @@ import javax.validation.constraints.*;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class BinRangeRequestData {
 
     @NotEmpty
