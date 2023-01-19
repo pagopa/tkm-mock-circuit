@@ -73,6 +73,15 @@ spec:
                 secretKeyRef:
                   key: VISA_PRIVATE_KEY
                   name: tkmcircuitmock
+            - name: APPLICATIONINSIGHTS_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  key: APPLICATIONINSIGHTS_CONNECTION_STRING
+                  name: applicationinsights
+            - name: APPLICATIONINSIGHTS_ROLE_NAME
+              value: tkmcircuitmocksit
+            - name: APPLICATIONINSIGHTS_SAMPLING_PERCENTAGE
+              value: "100"
           livenessProbe:
             httpGet:
               path: /actuator/health
