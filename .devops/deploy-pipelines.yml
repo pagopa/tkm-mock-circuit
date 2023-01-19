@@ -1,0 +1,193 @@
+parameters:
+  - name: FORCE_REPLACE_DOCKER_IMAGE
+    displayName: "Force replace docker image in docker registry"
+    type: boolean
+    default: false
+  - name: SEMVER
+    displayName: "When packing a release, define the version bump to apply. Use only buildNumber or skip for manual deployment"
+    type: string
+    values:
+      - major
+      - minor
+      - patch
+      - buildNumber
+      - skip
+    default: skip
+  - name: DEPLOY_DEV
+    displayName: "Deploy in the DEV environment"
+    type: boolean
+    default: true
+  - name: DEPLOY_UAT
+    displayName: "Deploy in the UAT environment"
+    type: boolean
+    default: true
+
+resources:
+  repositories:
+    - repository: pagopaCommons
+      type: github
+      name: pagopa/azure-pipeline-templates
+      ref: refs/tags/v2.10.1
+      endpoint: 'io-azure-devops-github-ro'
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+  - stage: ReleaseDEV
+    condition: eq(${{parameters.DEPLOY_DEV}}, true)
+    jobs:
+      - job: make_release
+        steps:
+          - checkout: self
+            clean: true
+            persistCredentials: true
+          - template: templates/maven-github-release/template.yaml@pagopaCommons
+            parameters:
+              release_branch: "CHK-687-add-helm-chart"
+              gitEmail: $(GIT_EMAIL)
+              gitUsername: $(GIT_USERNAME)
+              gitHubConnection: $(GITHUB_CONNECTION)
+              ${{ if ne(parameters.SEMVER, 'skip') }}:
+                semver: '${{ parameters.SEMVER }}'
+              ${{ if eq(parameters.SEMVER, 'skip') }}:
+                semver: 'buildNumber' # this case is impossible due to main condition, but it is necessary to work property
+          - template: templates/maven-github-current-version/template.yaml@pagopaCommons
+
+  # Build and Push Docker Image
+  - stage: BuildDEV
+    dependsOn: ReleaseDEV
+    condition: eq(${{parameters.DEPLOY_DEV}}, true)
+    variables:
+      current_version: $[ stageDependencies.Release.make_release.outputs['current_version.value'] ]
+    jobs:
+      - job: "build"
+        steps:
+          - script: |
+              git checkout CHK-687-add-helm-chart
+            displayName: Checkout
+          - script: |
+              mvn package -f ./pom.xml
+          - template: templates/docker-release/template.yaml@pagopaCommons
+            parameters:
+              CONTAINER_REGISTRY_SERVICE_CONN: $(DEV_CONTAINER_REGISTRY_SERVICE_CONN)
+              CONTAINER_REGISTRY_FQDN: $(DEV_CONTAINER_NAMESPACE)
+              DOCKER_IMAGE_NAME: $(IMAGE_REPOSITORY_NAME)
+              DOCKER_IMAGE_TAG: $(current_version)
+              FORCE_REPLACE_DOCKER_IMAGE: ${{ parameters.FORCE_REPLACE_DOCKER_IMAGE }}
+
+  - stage: DeployDEV
+    displayName: 'Deploy'
+    dependsOn:
+      - ReleaseDEV
+      - BuildDEV
+    condition: eq(${{parameters.DEPLOY_DEV}}, true)
+    variables:
+      deploy_version: $[ stageDependencies.Release.make_release.outputs['current_version.value'] ]
+    jobs:
+      - deployment: "deploy"
+        environment: 'DEV'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                  displayName: "Checkout"
+                - task: Bash@3
+                  name: update_chart_version
+                  displayName: 'Setup helm microservice chart'
+                  inputs:
+                    targetType: "inline"
+                    script: |
+                      helm repo add microservice-chart https://pagopa.github.io/aks-microservice-chart-blueprint
+                      helm dep build helm
+                - template: templates/helm-microservice-chart-deploy/template.yaml@pagopaCommons
+                  parameters:
+                    DO_DEPLOY: true
+                    ENV: "DEV"
+                    KUBERNETES_SERVICE_CONN: $(DEV_KUBERNETES_SERVICE_CONN)
+                    NAMESPACE: "shared"
+                    APP_NAME: $(IMAGE_REPOSITORY_NAME)
+                    VALUE_FILE: "helm/values-uat.yaml"
+                    DEPLOY_VERSION: $(deploy_version)
+
+  - stage: ReleaseUAT
+    condition: eq(${{parameters.DEPLOY_UAT}}, true)
+    dependsOn: []
+    jobs:
+      - job: make_release
+        steps:
+          - checkout: self
+            clean: true
+            persistCredentials: true
+          - template: templates/maven-github-release/template.yaml@pagopaCommons
+            parameters:
+              release_branch: "CHK-687-add-helm-chart"
+              gitEmail: $(GIT_EMAIL)
+              gitUsername: $(GIT_USERNAME)
+              gitHubConnection: $(GITHUB_CONNECTION)
+              ${{ if ne(parameters.SEMVER, 'skip') }}:
+                semver: '${{ parameters.SEMVER }}'
+              ${{ if eq(parameters.SEMVER, 'skip') }}:
+                semver: 'buildNumber' # this case is impossible due to main condition, but it is necessary to work property
+          - template: templates/maven-github-current-version/template.yaml@pagopaCommons
+
+  # Build and Push Docker Image
+  - stage: BuildUAT
+    dependsOn: ReleaseUAT
+    condition: eq(${{parameters.DEPLOY_UAT}}, true)
+    variables:
+      current_version: $[ stageDependencies.Release.make_release.outputs['current_version.value'] ]
+    jobs:
+      - job: "build"
+        steps:
+          - script: |
+              git checkout CHK-687-add-helm-chart
+            displayName: Checkout
+          - script: |
+              mvn package -f ./pom.xml
+          - template: templates/docker-release/template.yaml@pagopaCommons
+            parameters:
+              CONTAINER_REGISTRY_SERVICE_CONN: $(UAT_CONTAINER_REGISTRY_SERVICE_CONN)
+              CONTAINER_REGISTRY_FQDN: $(UAT_CONTAINER_NAMESPACE)
+              DOCKER_IMAGE_NAME: $(IMAGE_REPOSITORY_NAME)
+              DOCKER_IMAGE_TAG: $(current_version)
+              FORCE_REPLACE_DOCKER_IMAGE: ${{ parameters.FORCE_REPLACE_DOCKER_IMAGE }}
+
+  - stage: DeployUAT
+    displayName: 'Deploy'
+    dependsOn:
+      - ReleaseUAT
+      - BuildUAT
+    condition: eq(${{parameters.DEPLOY_UAT}}, true)
+    variables:
+      deploy_version: $[ stageDependencies.Release.make_release.outputs['current_version.value'] ]
+    jobs:
+      - deployment: "deploy"
+        pool:
+          name: pagopa-uat-linux
+        environment: 'UAT'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                  displayName: "Checkout"
+                - task: Bash@3
+                  name: update_chart_version
+                  displayName: 'Setup helm microservice chart'
+                  inputs:
+                    targetType: "inline"
+                    script: |
+                      helm repo add microservice-chart https://pagopa.github.io/aks-microservice-chart-blueprint
+                      helm dep build helm
+                - template: templates/helm-microservice-chart-deploy/template.yaml@pagopaCommons
+                  parameters:
+                    DO_DEPLOY: true
+                    ENV: "UAT"
+                    KUBERNETES_SERVICE_CONN: $(UAT_KUBERNETES_SERVICE_CONN)
+                    NAMESPACE: "shared"
+                    APP_NAME: $(IMAGE_REPOSITORY_NAME)
+                    VALUE_FILE: "helm/values-uat.yaml"
+                    DEPLOY_VERSION: $(deploy_version)
+
